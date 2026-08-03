@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2048 AI Solver — Watch the Expectimax AI Play</title>
+<meta name="description" content="Watch an expectimax AI self-play 2048 in your browser. The same engine reaches the 2048 tile in ~70% of games. Open source, MIT.">
+<style>
+  :root { --bg:#faf8ef; --fg:#776e65; --board:#bbada0; --cell:#cdc1b4; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+         background: var(--bg); color: var(--fg); display:flex; flex-direction:column;
+         align-items:center; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  p.sub { margin: 0 0 20px; text-align:center; max-width: 34rem; line-height:1.5; }
+  a { color:#8f7a66; }
+  .stats { display:flex; gap:18px; margin-bottom:14px; flex-wrap:wrap; justify-content:center; }
+  .stat { background:#eee4da; border-radius:6px; padding:8px 14px; text-align:center; min-width:78px; }
+  .stat b { display:block; font-size:1.3rem; color:#776e65; }
+  .stat span { font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+  #board { width: 320px; height:320px; background: var(--board); border-radius:8px;
+           padding:10px; display:grid; grid-template-columns: repeat(4,1fr);
+           grid-template-rows: repeat(4,1fr); gap:10px; }
+  .tile { border-radius:5px; background: var(--cell); display:flex; align-items:center;
+          justify-content:center; font-weight:700; font-size:1.7rem;
+          transition: background .12s, color .12s; }
+  .tile[data-v="0"]{ color:transparent; }
+  .tile[data-v="2"]{ background:#eee4da; } .tile[data-v="4"]{ background:#ede0c8; }
+  .tile[data-v="8"]{ background:#f2b179; color:#f9f6f2; } .tile[data-v="16"]{ background:#f59563; color:#f9f6f2; }
+  .tile[data-v="32"]{ background:#f67c5f; color:#f9f6f2; } .tile[data-v="64"]{ background:#f65e3b; color:#f9f6f2; }
+  .tile[data-v="128"]{ background:#edcf72; color:#f9f6f2; font-size:1.4rem; } .tile[data-v="256"]{ background:#edcc61; color:#f9f6f2; font-size:1.4rem; }
+  .tile[data-v="512"]{ background:#edc850; color:#f9f6f2; font-size:1.4rem; } .tile[data-v="1024"]{ background:#edc53f; color:#f9f6f2; font-size:1.1rem; }
+  .tile[data-v="2048"]{ background:#edc22e; color:#f9f6f2; font-size:1.1rem; } .tile[data-v="4096"]{ background:#3c3a32; color:#f9f6f2; font-size:1.1rem; }
+  .tile[data-v="8192"]{ background:#2e2c24; color:#f9f6f2; font-size:1.1rem; }
+  .controls { margin-top:18px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+  button { font: inherit; font-weight:600; background:#8f7a66; color:#f9f6f2; border:0;
+           border-radius:5px; padding:9px 16px; cursor:pointer; }
+  button:hover { background:#7f6a56; }
+  label { font-size:.85rem; }
+  .foot { margin-top:22px; font-size:.85rem; text-align:center; }
+</style>
+</head>
+<body>
+  <h1>2048 AI Solver</h1>
+  <p class="sub">Watch an <strong>expectimax</strong> AI self-play 2048 — the same engine that reaches the
+    2048 tile in ~70% of games. It runs entirely in your browser, no server.
+    <a href="https://github.com/lucian-devops/2048-ai-solver">Source on GitHub</a> ·
+    <a href="https://lkforge.com/games/2048/">Play it yourself</a></p>
+
+  <div class="stats">
+    <div class="stat"><b id="s-moves">0</b><span>Moves</span></div>
+    <div class="stat"><b id="s-max">0</b><span>Max tile</span></div>
+    <div class="stat"><b id="s-status">Ready</b><span>Status</span></div>
+  </div>
+
+  <div id="board"></div>
+
+  <div class="controls">
+    <button id="toggle">▶ Play</button>
+    <button id="restart">↻ Restart</button>
+    <label>Speed
+      <select id="speed">
+        <option value="200">Slow</option>
+        <option value="90" selected>Normal</option>
+        <option value="16">Fast</option>
+        <option value="0">Max</option>
+      </select>
+    </label>
+  </div>
+
+  <p class="foot">Reaches 2048 ~70% · 4096 ~30% · never 8192 — measured over self-play.
+    Expectimax + corner-snake heuristic. MIT licensed.</p>
+
+<script src="solver.js"></script>
+<script>
+(function () {
+  'use strict';
+  var K = window.LK2048;
+  var boardEl = document.getElementById('board');
+  var tiles = [];
+  for (var i = 0; i < 16; i++) {
+    var t = document.createElement('div');
+    t.className = 'tile'; t.setAttribute('data-v', '0');
+    boardEl.appendChild(t); tiles.push(t);
+  }
+  var board, moves, running = false, timer = null;
+  var sMoves = document.getElementById('s-moves'),
+      sMax = document.getElementById('s-max'),
+      sStatus = document.getElementById('s-status'),
+      toggle = document.getElementById('toggle'),
+      speed = document.getElementById('speed');
+
+  function spawn() {
+    var e = K.emptyCells(board);
+    if (!e.length) return;
+    board[e[Math.floor(Math.random() * e.length)]] = Math.random() < 0.9 ? 2 : 4;
+  }
+  function render() {
+    var mx = 0;
+    for (var i = 0; i < 16; i++) {
+      tiles[i].setAttribute('data-v', board[i]);
+      tiles[i].textContent = board[i] || '';
+      if (board[i] > mx) mx = board[i];
+    }
+    sMoves.textContent = moves;
+    sMax.textContent = mx;
+  }
+  function reset() {
+    board = new Array(16).fill(0); moves = 0;
+    spawn(); spawn(); render();
+    sStatus.textContent = 'Ready';
+  }
+  function step() {
+    var dir = K.bestMove(board);
+    if (!dir) { stop('Game over'); return; }
+    var r = K.computeMove(board, dir);
+    if (!r.moved) { stop('Game over'); return; }
+    board = r.board; spawn(); moves++; render();
+    if (!K.canMove(board)) { stop('Game over'); return; }
+    if (running) timer = setTimeout(step, parseInt(speed.value, 10));
+  }
+  function play() {
+    if (running) return;
+    if (!K.canMove(board)) reset();
+    running = true; toggle.textContent = '❚❚ Pause';
+    sStatus.textContent = 'Playing'; step();
+  }
+  function stop(status) {
+    running = false; clearTimeout(timer); toggle.textContent = '▶ Play';
+    if (status) sStatus.textContent = status;
+  }
+  toggle.addEventListener('click', function () { running ? stop('Paused') : play(); });
+  document.getElementById('restart').addEventListener('click', function () { stop(); reset(); });
+
+  reset();
+})();
+</script>
+</body>
+</html>
