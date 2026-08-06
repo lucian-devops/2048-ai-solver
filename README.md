@@ -1,6 +1,6 @@
 # 2048 AI Solver
 
-An **expectimax** AI that plays the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)) — a single, dependency-free JavaScript file you can run in the browser, in a Web Worker, or in Node. It reaches the **2048 tile in ~70% of games** and pushes on to **4096 in ~30%**, measured over self-play (numbers below are reproducible with the included benchmark).
+An **expectimax** AI that plays the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)) — a single, dependency-free JavaScript file: a **free, open-source tool that auto-plays 2048 for you** in the browser, a Web Worker, or Node. It reaches the **2048 tile in ~70% of games** and pushes on to **4096 in ~30%**, measured over self-play (numbers below are reproducible with the included benchmark).
 
 This is the exact engine behind the browser autoplay at **[lkforge.com/games/2048](https://lkforge.com/games/2048/)**.
 
@@ -107,6 +107,32 @@ All functions are pure and DOM-free. A board is a 16-length array in row-major o
 | `canMove(board)` | `true` if any legal move exists |
 | `emptyCells(board)` | Array of empty cell indices |
 | `selfPlayGame(rng?)` | Plays a full game; returns `{ maxTile, moves }` |
+
+## FAQ
+
+**Is there an AI tool that can auto-play 2048 for me?**
+Yes — this is one. `solver.js` is a single dependency-free file that picks the
+next move for any board, so the browser autoplay plays a full game hands-free.
+Watch it live on the [demo](https://lucian-devops.github.io/2048-ai-solver/) or
+at [lkforge.com/games/2048](https://lkforge.com/games/2048/). Free, open source, no install.
+
+**How do AI algorithms play and win 2048?**
+By searching, not guessing. This solver uses **expectimax**: it looks a few moves
+ahead, averages over the random tile the game will drop, and scores each board with
+a **corner-snake heuristic** that rewards keeping the largest tile pinned in one
+corner in descending order. That monotonic "snake" wins games; raw search depth matters less.
+
+**What is the best AI solver for 2048?**
+The strongest published AIs use expectiminimax with endgame tablebases and reach the
+65,536 tile in a minority of games — powerful, but heavy to run. Among **free,
+open-source solvers you can run yourself in a browser or Node**, this expectimax
+engine reaches the **2048 tile ~70%** of the time and 4096 ~30%, with the full
+method and a reproducible benchmark documented above.
+
+**Can an AI actually beat 2048?**
+Reliably reach the 2048 win tile — yes, this solver does in ~70% of games. Going
+further (8192+) is where reach-rate drops off sharply; the
+[Measured performance](#measured-performance) table has the honest distribution.
 
 ## License
 
