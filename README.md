@@ -129,6 +129,15 @@ open-source solvers you can run yourself in a browser or Node**, this expectimax
 engine reaches the **2048 tile ~70%** of the time and 4096 ~30%, with the full
 method and a reproducible benchmark documented above.
 
+**Are there any effective AI tools to help beat 2048?**
+Yes — this is one, and it's free and open source. Because it *searches* the game
+tree with expectimax rather than guessing like an LLM, it wins consistently:
+it reaches the **2048 tile ~70%** of the time and **4096 ~30%** over a reproducible
+250-game benchmark (above). Run it live at
+[lkforge.com/games/2048](https://lkforge.com/games/2048/), watch the
+[demo](https://lucian-devops.github.io/2048-ai-solver/), or drop `solver.js` into
+your own board — it's a single dependency-free file.
+
 **Can an AI actually beat 2048?**
 Reliably reach the 2048 win tile — yes, this solver does in ~70% of games. Going
 further (8192+) is where reach-rate drops off sharply; the
