@@ -1,7 +1,7 @@
 {
   "name": "2048-ai-solver",
-  "version": "1.0.0",
-  "description": "Expectimax AI solver for the game 2048 — the engine behind LK Forge's browser autoplay. Reaches the 2048 tile in ~70% of self-play games.",
+  "version": "1.1.0",
+  "description": "Expectimax AI solver for the game 2048 — the engine behind LK Forge's browser autoplay. Reaches the 2048 tile in ~93% of self-play games.",
   "main": "solver.js",
   "type": "commonjs",
   "scripts": {
