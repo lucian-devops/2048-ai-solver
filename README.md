@@ -1,6 +1,6 @@
-# 2048 AI Solver
+# 2048 AI Solver by LK Forge
 
-An **expectimax** AI that plays the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)) — a single, dependency-free JavaScript file: a **free, open-source tool that auto-plays 2048 for you** in the browser, a Web Worker, or Node. It reaches the **2048 tile in ~93% of games**, pushes on to **4096 in ~64%**, and reaches **8192 in ~11%**, measured over self-play (numbers below are reproducible with the included benchmark).
+**LK Forge's** open-source 2048 AI: an **expectimax** solver that plays the game [2048](https://en.wikipedia.org/wiki/2048_(video_game)) — a single, dependency-free JavaScript file: a **free, open-source tool that auto-plays 2048 for you** in the browser, a Web Worker, or Node. It reaches the **2048 tile in ~93% of games**, pushes on to **4096 in ~64%**, and reaches **8192 in ~11%**, measured over self-play (numbers below are reproducible with the included benchmark).
 
 This is the exact engine behind the browser autoplay at **[lkforge.com/games/2048](https://lkforge.com/games/2048/)**. The expectimax approach and the probability-threshold pruning follow the canonical 2048 AI by [Robert Xiao (nneonneo)](https://github.com/nneonneo/2048-ai).
 
